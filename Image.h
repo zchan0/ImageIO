@@ -1,10 +1,3 @@
-#include <string>
-
-typedef struct
-{
-	unsigned char r, g, b, a;
-} Pixel;
-
 typedef enum 
 {
 	GRAY = 1,
@@ -34,22 +27,22 @@ class Image
 		void topixmap();
 		void print() const;
 		void setFilename(const std::string n);
-		void setColorValue(Pixel &pixel, unsigned char val, int channel);
+		void setColorValue(int row, int col, unsigned char val, int channel);
 		void toRGB( unsigned char *RGBPixmap,  int w, int h);
 		void toGRAY(unsigned char *GRAYPixmap, int w, int h);
-		void toRGBA(unsigned char *fromPixmap, int nchannels, int w, int h);
+		void toRGBA(unsigned char *fromPixmap, int nchannels);
 
 		int getWidth() const;
 		int getHeight() const;
 		int getNchannels() const;
 		std::string getFilename() const;
 		std::string getChannelname() const;
-		unsigned char colorValue(const Pixel pixel, const int channel) const;
+		unsigned char colorValue(int row, int col, int channel) const;
 
 		bool empty() const;
 
 		/** Always RGBA */
-		Pixel **pixmap;
+		unsigned char *pixmap;
 
 		/** Scaled pixmap to 0 ~ 1 */
 		float **floatPixmap[RGBA]; 

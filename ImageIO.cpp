@@ -47,12 +47,12 @@ void ImageIO::loadImage(const std::string filename)
 		case RGB:
 			setupRGBpixmap(w, h);
 			succeed = inFile -> read_image(TypeDesc::UINT8, RGBPixmap); 
-			image.toRGBA(RGBPixmap, RGB, w, h);
+			image.toRGBA(RGBPixmap, RGB);
 			break;
 		case GRAY:
 			setupGRAYpixmap(w, h);
 			succeed = inFile -> read_image(TypeDesc::UINT8, GRAYPixmap);
-			image.toRGBA(GRAYPixmap, GRAY, w, h);
+			image.toRGBA(GRAYPixmap, GRAY);
 			break;
 		case RGBA:
 		default:

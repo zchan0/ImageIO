@@ -40,24 +40,10 @@ void Image::copy(const Image& img)
 
 	buildPixmap();
 
-	for (int i = 0; i < height; ++i) {
-		for (int j = 0; j < width; ++j) {
-			for (int channel = 0; channel < nchannels; ++channel) {
-				switch(channel) {
-					case R:
-						pixmap[i][j].r = img.colorValue(img.pixmap[i][j], channel);	break;	
-					case G:
-						pixmap[i][j].g = img.colorValue(img.pixmap[i][j], channel);	break;	
-					case B:
-						pixmap[i][j].b = img.colorValue(img.pixmap[i][j], channel);	break;	
-					case A:
-						pixmap[i][j].a = img.colorValue(img.pixmap[i][j], channel);	break;	
-					default:
-						break;
-				}
-			}
-		}
-	}
+	for (int i = 0; i < height; ++i) 
+		for (int j = 0; j < width; ++j) 
+			for (int channel = 0; channel < RGBA; ++channel)
+				setColorValue(i, j, img.colorValue(i, j, channel), channel);
 }
 
 /**
@@ -66,16 +52,11 @@ void Image::copy(const Image& img)
  */
 void Image::buildPixmap()
 {
-	pixmap = new Pixel*[height];	
-	for (int i = 0; i < height; ++i) {
-		pixmap[i] = new Pixel[width];
-		for (int j = 0; j < width; ++j) {
-			pixmap[i][j].r = 0;
-			pixmap[i][j].g = 0;
-			pixmap[i][j].b = 0;
-			pixmap[i][j].a = 255;	
-		}
-	}
+	pixmap = new unsigned char[RGBA * width * height];
+	for (int i = 0; i < height; ++i) 
+		for (int j = 0; j < width; ++j) 
+			for (int channel = 0; channel < RGBA; ++channel) 
+				pixmap[(i * width + j) * RGBA + channel] = channel == A ? 255 : 0;
 }
 
 /**
@@ -84,14 +65,11 @@ void Image::buildPixmap()
  */
 void Image::flip()
 {
-	for (int i = height - 1; i < (height + 1) / 2 - 1; --i) {
-		for (int j = 0; j < width; ++j) {
-			Pixel temp;
-			temp = pixmap[i][j];
-			pixmap[i][j] = pixmap[height - 1 - i][j];
-			pixmap[height - 1 - i][j] = temp;	
-		}
-	}
+	for(int i = height - 1; i > (height +1) / 2 - 1; --i) 
+    	for(int j = 0; j < width; ++j) 
+    		for (int channel = 0; channel < RGBA; ++channel)
+    			std::swap(pixmap[(i * width + j) * RGBA + channel], 
+      			  		  pixmap[((height - 1 - i) * width + j) * RGBA + channel]);
 }
 
 void Image::tofloat()
@@ -110,10 +88,10 @@ void Image::tofloat()
 		}
 	}
 
-	for (int channel = 0; channel < RGBA; ++channel) 
 		for (int i = 0; i < height; ++i) 
 			for (int j = 0; j < width; ++j) 
-				floatPixmap[channel][i][j] = colorValue(pixmap[i][j], channel) / 255.0;
+				for (int channel = 0; channel < RGBA; ++channel) 
+					floatPixmap[channel][i][j] = colorValue(i, j, channel) / 255.0;
 }
 
 /**
@@ -121,46 +99,51 @@ void Image::tofloat()
  */
 void Image::topixmap()
 {
-	float val = 0.0;
+	unsigned char val = 0;
 	for (int i = 0; i < height; ++i) {
 		for (int j = 0; j < width; ++j) {
-			val =  pixmap[i][j].r * 255.0;
-			pixmap[i][j].r = (val < 0.0 ? 0 : (val > 255.0 ? 255 : val));
-			val =  pixmap[i][j].g * 255.0;
-			pixmap[i][j].g = (val < 0.0 ? 0 : (val > 255.0 ? 255 : val));
-			val =  pixmap[i][j].b * 255.0;
-			pixmap[i][j].b = (val < 0.0 ? 0 : (val > 255.0 ? 255 : val));
-			val =  pixmap[i][j].a * 255.0;
-			pixmap[i][j].a = (val < 0.0 ? 0 : (val > 255.0 ? 255 : val));
+			for (int channel = 0; channel < RGBA; ++channel) {
+				val =  colorValue(i, j, channel) * 255;
+				setColorValue(i, j, (val < 0 ? 0 : (val > 255 ? 255 : val)), channel);
+			}
 		}
 	}
 }
 
 void Image::toRGB(unsigned char *RGBPixmap, int w, int h)
 {
-	for (int i = 0; i < h; ++i) {
-		for (int j = 0; j < w; ++j) {
-			RGBPixmap[(i * w + j) * RGB + R] = colorValue(pixmap[i][j], R);
-			RGBPixmap[(i * w + j) * RGB + G] = colorValue(pixmap[i][j], G);
-			RGBPixmap[(i * w + j) * RGB + B] = colorValue(pixmap[i][j], B);
-		}
-	}
+	for (int i = 0; i < h; ++i) 
+		for (int j = 0; j < w; ++j) 
+			for (int channel = 0; channel < RGB; ++channel)
+				RGBPixmap[(i * w + j) * RGB + channel] = colorValue(i, j, channel);
 }
 
 void Image::toGRAY(unsigned char *GRAYPixmap, int w, int h)
 {
 	for (int i = 0; i < h; ++i) 
 		for (int j = 0; j < w; ++j) 
-			GRAYPixmap[i * w + j] = colorValue(pixmap[i][j], R);
+			GRAYPixmap[i * w + j] = colorValue(i, j, R);
 }
 
-void Image::toRGBA(unsigned char *fromPixmap, int nchannels, int w, int h)
+void Image::toRGBA(unsigned char *fromPixmap, int nchannels)
 {
-	for (int i = 0; i < h; ++i) {
-		for (int j = 0; j < w; ++j) {
-			for (int channel = 0; channel < RGBA; ++channel) {
-				// setColorValue(pixmap[i][j], fromPixmap[(i * w + j) * GRAY], channel);
-				setColorValue(pixmap[i][j], fromPixmap[(i * w + j) * RGB + channel], channel);
+	if (nchannels != GRAY && nchannels != RGB) {
+		std::cerr << "ERROR: unsupported nchannels = " << nchannels << std::endl;
+	}
+
+	for (int i = 0; i < height; ++i) {
+		for (int j = 0; j < width; ++j) {
+			for (int channel = 0; channel < RGB; ++channel) {
+				switch(nchannels) {
+					case GRAY:
+						setColorValue(i, j, fromPixmap[(i * width + j) * GRAY], channel);
+						break;
+					case RGB:
+						setColorValue(i, j, fromPixmap[(i * width + j) * nchannels + channel], channel);
+						break;
+					default:
+						break;
+				}
 			}
 		}
 	}
@@ -196,27 +179,14 @@ std::string Image::getChannelname() const
 	return channelname;
 }
 
-unsigned char Image::colorValue(const Pixel pixel, const int channel) const
+unsigned char Image::colorValue(int row, int col, int channel) const
 {
-	switch(channel) {
-		case 0: return pixel.r; break;
-		case 1: return pixel.g; break;
-		case 2: return pixel.b; break;
-		case 3: return pixel.a; break;
-		default:
-			return 0; break;
-	}
+	return pixmap[(row * width + col) * RGBA + channel];
 }
 
-void Image::setColorValue(Pixel &pixel, unsigned char val, int channel)
+void Image::setColorValue(int row, int col, unsigned char val, int channel)
 {
-	switch(channel) {
-		case 0: pixel.r = val; break;
-		case 1: pixel.g = val; break;
-		case 2: pixel.b = val; break;
-		case 3: pixel.a = val; break;
-		default: break;
-	}
+	pixmap[(row * width + col) * RGBA + channel] = val;
 }
 
 bool Image::empty() const
@@ -235,7 +205,7 @@ void Image::print() const
 	for (int i = 0; i < height; ++i) {
 		for (int j = 0; j < width; ++j) {
 			for (int channel = 0; channel < nchannels; ++channel) {
-				std::cout << (int)colorValue(pixmap[i][j], channel) << " ";
+				std::cout << (int)colorValue(i, j, channel) << " ";
 			}
 			std::cout << std::endl;
 		}
