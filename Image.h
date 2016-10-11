@@ -45,7 +45,7 @@ class Image
 		unsigned char *pixmap;
 
 		/** Scaled pixmap to 0 ~ 1 */
-		float **floatPixmap[RGBA]; 
+		float *floatPixmap; 
 
 	private:
 		void buildPixmap();

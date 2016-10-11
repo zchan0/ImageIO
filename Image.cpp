@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 
 #include "Image.h"
 
@@ -74,36 +75,28 @@ void Image::flip()
 
 void Image::tofloat()
 {
-	for (int channel = 0; channel < RGBA; ++channel) {
-		floatPixmap[channel] = new float*[height];
-		if (floatPixmap[channel] != NULL) {
-			floatPixmap[channel][0] = new float[width * height];
-		}
-		if (floatPixmap[channel] == NULL || floatPixmap[channel][0] == NULL) {
-			std::cerr << "ERROR: could not allocate memory for floatPixmap" << std::endl;
-			exit(-1);
-		}
-		for (int i = 0; i < height; ++i) {
-			floatPixmap[channel][i] = floatPixmap[channel][i - 1] + width;
-		}
-	}
-
-		for (int i = 0; i < height; ++i) 
-			for (int j = 0; j < width; ++j) 
-				for (int channel = 0; channel < RGBA; ++channel) 
-					floatPixmap[channel][i][j] = colorValue(i, j, channel) / 255.0;
+	if (floatPixmap == NULL) 
+		floatPixmap = new float[RGBA * width * height];
+	
+	for (int i = 0; i < height; ++i)
+		for (int j = 0; j < width; ++j)
+			for (int channel = 0; channel < RGBA; ++channel)
+				floatPixmap[(i * width + j) * RGBA + channel] = (float)colorValue(i, j, channel) / 255.0;
 }
 
 /**
- * Convert scaled(0 ~ 1) pixmap to range 0 ~ 255
+ * Convert scaled(0 ~ 1) floatPixmap to range 0 ~ 255
  */
 void Image::topixmap()
 {
+	if (floatPixmap == NULL)
+		return;
+
 	unsigned char val = 0;
 	for (int i = 0; i < height; ++i) {
 		for (int j = 0; j < width; ++j) {
 			for (int channel = 0; channel < RGBA; ++channel) {
-				val =  colorValue(i, j, channel) * 255;
+				val =  (int)floor(floatPixmap[(i * width + j) * RGBA + channel] * 255.0);
 				setColorValue(i, j, (val < 0 ? 0 : (val > 255 ? 255 : val)), channel);
 			}
 		}

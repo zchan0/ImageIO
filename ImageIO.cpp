@@ -67,6 +67,7 @@ void ImageIO::loadImage(const std::string filename)
 	}
 
 	image.flip();
+  image.setFilename(filename);  
 
 	if (!inFile -> close()) {
 		std::cerr << "ERROR: could not close " << filename << ", error = " << geterror() << std::endl;
