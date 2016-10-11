@@ -128,9 +128,9 @@ void Image::toRGBA(unsigned char *fromPixmap, int nchannels)
 		std::cerr << "ERROR: unsupported nchannels = " << nchannels << std::endl;
 	}
 
-	for (int i = 0; i < height; ++i) {
-		for (int j = 0; j < width; ++j) {
-			for (int channel = 0; channel < RGB; ++channel) {
+	for (int i = 0; i < height; ++i) 
+		for (int j = 0; j < width; ++j) 
+			for (int channel = 0; channel < RGB; ++channel) 
 				switch(nchannels) {
 					case GRAY:
 						setColorValue(i, j, fromPixmap[(i * width + j) * GRAY], channel);
@@ -140,9 +140,6 @@ void Image::toRGBA(unsigned char *fromPixmap, int nchannels)
 						break;
 					default: break;
 				}
-			}
-		}
-	}
 }
 
 int Image::getWidth() const
