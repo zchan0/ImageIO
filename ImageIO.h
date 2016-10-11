@@ -12,6 +12,12 @@ class ImageIO
 		void draw();
 		void loadFile(const std::string filename);
 		void saveImage(const std::string filename);
+
+		/**
+		 * Read pixmap to frame buffer, ALWAYS is RGBA
+		 * 
+		 * @param fromPixmap nchannels should be RGBA
+		 */
 		void setPixmap(int w, int h, unsigned char *fromPixmap);
 
 	private:
