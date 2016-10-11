@@ -55,7 +55,7 @@ void promptInstructions() {
 }
 
 void display() {
-  imageIO.drawImage();
+  imageIO.draw();
 }
 
 /********* handle keyboard  **********/
@@ -64,8 +64,8 @@ void readImageFile() {
   std::string fileName;
   std::cout << "Enter image file name to read: ";
   std::cin  >> fileName;
-  imageIO.loadImage(fileName);
-  imageIO.drawImage();
+  imageIO.loadFile(fileName);
+  imageIO.draw();
 }
 
 void writeImageFile() {
@@ -104,11 +104,11 @@ int main(int argc, char* argv[]) {
 
   char* fileName = getFileNameFromCommandLine(argc, argv);
   if (fileName != NULL) {
-    imageIO.loadImage(fileName);
+    imageIO.loadFile(fileName);
   } 
 
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
-  glutInitWindowSize(imageIO.image.getWidth(), imageIO.image.getHeight());
+  glutInitWindowSize(imageIO.getWidth(), imageIO.getHeight());
   glutCreateWindow("Get the Picture");
 
   glutDisplayFunc(display);

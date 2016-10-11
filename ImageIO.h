@@ -6,12 +6,13 @@ class ImageIO
 		ImageIO();
 		~ImageIO();
 		
-		void loadImage(const std::string filename);
+		int getWidth() const;
+		int getHeight() const;
+
+		void draw();
+		void loadFile(const std::string filename);
 		void saveImage(const std::string filename);
-		void drawImage();
-	
-		/** image load in */
-		Image image;
+		void setPixmap(int w, int h, unsigned char *fromPixmap);
 
 	private:
 		void buildMap();
@@ -19,7 +20,8 @@ class ImageIO
 		void setupGRAYpixmap(int w, int h);
 		int  getNchannels(const std::string filename);
 
-		/** handle nchannel != 4 */
+		int width, height; // image size
+		unsigned char *pixmap;
 		unsigned char *RGBPixmap;
 		unsigned char *GRAYPixmap;	
 };

@@ -16,14 +16,19 @@ static std::map<std::string, int>format_nchannels_map;
 
 ImageIO::ImageIO()
 {
-	image = Image();
-	buildMap();
+  buildMap();
+  width  = height = 0;
+  pixmap = RGBPixmap = GRAYPixmap = NULL;
 }
 
 ImageIO::~ImageIO()
-{}
+{
+  if (pixmap != NULL) delete [] pixmap;
+  if (RGBPixmap != NULL) delete [] RGBPixmap;
+  if (GRAYPixmap != NULL) delete [] GRAYPixmap;
+}
 
-void ImageIO::loadImage(const std::string filename)
+void ImageIO::loadFile(const std::string filename)
 {
 	ImageInput *inFile = ImageInput::open(filename);
 	if (!inFile) {
@@ -36,7 +41,7 @@ void ImageIO::loadImage(const std::string filename)
 	int h = spec.height;
 	int nchannels = spec.nchannels;
 	
-	image = Image(w, h, nchannels);
+	Image image = Image(w, h, nchannels);
 	if (image.empty()) {
 		std::cerr << "ERROR: could not init image, check width " << w << " height " << h << " nchannels " << nchannels << std::endl;
 		return;
@@ -67,7 +72,7 @@ void ImageIO::loadImage(const std::string filename)
 	}
 
 	image.flip();
-  image.setFilename(filename);  
+  setPixmap(w, h, image.pixmap);
 
 	if (!inFile -> close()) {
 		std::cerr << "ERROR: could not close " << filename << ", error = " << geterror() << std::endl;
@@ -150,34 +155,32 @@ void ImageIO::saveImage(const std::string filename)
   	delete outFile;
 }
 
-void ImageIO::drawImage() {
+void ImageIO::draw() {
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT);
 
-  if(image.pixmap != NULL) {
+  if(pixmap != NULL) {
     int w = glutGet(GLUT_WINDOW_WIDTH); 
     int h = glutGet(GLUT_WINDOW_HEIGHT);
-    int iw = image.getWidth();
-    int ih = image.getHeight();
 
     // calculate portion of image size to current window size
     // factorX/Y < 1 means current window size need resize image
     // use the smallest factor to fit current window
-    double factorX = (double)w / iw;
-    double factorY = (double)h / ih;
+    double factorX = (double)w / width;
+    double factorY = (double)h / height;
     double factor = std::min(1.0, std::min(factorX, factorY));
 
     // calculate center postion
     // if image width or height small than window's, corresponding raster x or y should be 0
     // if window width or height bigger than image's, corresponding raster x or y should be in center 
-    int centerX = factorX < 1 ? 0 : (w - iw) / 2;
-    int centerY = factorY < 1 ? 0 : (h - ih) / 2;
+    int centerX = factorX < 1 ? 0 : (w - width) / 2;
+    int centerY = factorY < 1 ? 0 : (h - height) / 2;
 
     glPixelZoom(factor, factor);
     glRasterPos2i(centerX, centerY);
    
     //glDrawPixels writes a block of pixels to the frame buffer.
-    glDrawPixels(iw, ih, GL_RGBA, GL_UNSIGNED_BYTE, image.pixmap);
+    glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixmap);
   }
 
   // swap the back and front buffers so can see what just drew
@@ -196,8 +199,22 @@ int ImageIO::getNchannels(const std::string filename)
 
 void ImageIO::buildMap()
 {
-	format_nchannels_map["ppm"] = RGB;
-  	format_nchannels_map["png"] = format_nchannels_map["jpg"] = format_nchannels_map["tif"] = RGBA;
+  format_nchannels_map["ppm"] = RGB;
+  format_nchannels_map["png"] = format_nchannels_map["jpg"] = format_nchannels_map["tif"] = RGBA;
+}
+
+void ImageIO::setPixmap(int w, int h, unsigned char *fromPixmap)
+{
+  if (pixmap != NULL) delete [] pixmap;
+  
+  width  = w;
+  height = h;
+  pixmap = new unsigned char[RGBA * w * h];
+  
+  for (int i = 0; i < h; ++i)
+    for (int j = 0; j < w; ++j)
+      for (int channel = 0; channel < RGBA; ++channel)
+        pixmap[(i * w + j) * RGBA + channel] = fromPixmap[(i * w + j) * RGBA + channel];   
 }
 
 void ImageIO::setupRGBpixmap(int w, int h)
@@ -210,4 +227,14 @@ void ImageIO::setupGRAYpixmap(int w, int h)
 {
 	if (GRAYPixmap != NULL) return;
 	GRAYPixmap = new unsigned char[GRAY * w * h];
+}
+
+int ImageIO::getWidth() const
+{
+  return width;
+}
+
+int ImageIO::getHeight() const
+{
+  return height;
 }

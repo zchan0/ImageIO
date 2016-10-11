@@ -32,14 +32,13 @@ class Image
 		void toGRAY(unsigned char *GRAYPixmap, int w, int h);
 		void toRGBA(unsigned char *fromPixmap, int nchannels);
 
+		bool empty() const;
 		int getWidth() const;
 		int getHeight() const;
 		int getNchannels() const;
 		std::string getFilename() const;
 		std::string getChannelname() const;
 		unsigned char colorValue(int row, int col, int channel) const;
-
-		bool empty() const;
 
 		/** Always RGBA */
 		unsigned char *pixmap;

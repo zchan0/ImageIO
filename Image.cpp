@@ -6,12 +6,16 @@
 Image::Image()
 {
 	pixmap = NULL;
+	floatPixmap = NULL;
 	filename = channelname = "";
 	width  = height = nchannels = 0;
 }
 
 Image::~Image()
-{}
+{
+	if (pixmap != NULL) delete [] pixmap;
+	if (floatPixmap != NULL) delete [] floatPixmap;
+}
 
 Image::Image(const Image& img)
 {
@@ -134,8 +138,7 @@ void Image::toRGBA(unsigned char *fromPixmap, int nchannels)
 					case RGB:
 						setColorValue(i, j, fromPixmap[(i * width + j) * nchannels + channel], channel);
 						break;
-					default:
-						break;
+					default: break;
 				}
 			}
 		}
